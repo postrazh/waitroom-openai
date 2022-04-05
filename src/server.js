@@ -1,9 +1,12 @@
 const express = require('express');
 const logger = require('morgan');
+
 const APIController = require('./controllers/api');
+const OpenAIService = require('./services/oai-service');
 
 class Server {
   app = null;
+  openaiService = null;
 
   constructor() {
     this.configureServer();
@@ -20,6 +23,10 @@ class Server {
       res.send('OK');
     })
 
+    // Create OpenAIService
+    this.openaiService = new OpenAIService();
+
+    // Configure API controllers
     this.configureControllers();
 
     // error handler
@@ -37,7 +44,7 @@ class Server {
   }
 
   configureControllers() {
-    this.app.use('/api', new APIController().router);
+    this.app.use('/api', new APIController(this.openaiService).router);
   }
 }
 

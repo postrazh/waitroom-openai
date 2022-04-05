@@ -1,4 +1,8 @@
 const http = require('http');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
 const Server = require('./server');
 
 const port = normalizePort(process.env.PORT || "8080");
