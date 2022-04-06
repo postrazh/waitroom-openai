@@ -1,19 +1,11 @@
-// const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
 const { createClient } = require('redis');
-
-// const client = new SQSClient({
-//     credentials: {
-//         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-//     },
-//     region: 'us-east-1'
-// })
-// const SQS_URL = process.env.AWS_SQS_URL || '';
-
 
 // TODO: Use npm convict
 const REDIS_URL = process.env.REDIS_URL || '';
 const QUEUE_CHANNEL = process.env.QUEUE_CHANNEL || '';
+
+const MAX_RATE = process.env.MAX_RATE || 5;
+const MAX_RATE_SPAN = process.env.MAX_RATE_SPAN || 1; // in seconds
 
 const TBL_PREFIX = 'request';
 const TBL_FIELD_ID = 'id';
@@ -21,9 +13,6 @@ const TBL_FIELD_MSG = 'msg';
 const TBL_FIELD_RESPONSE = 'resp';
 const TBL_FIELD_STATUS = 'status';
 const INDEX_SET_PREFIX = 'msg';
-
-const MAX_RATE = 5;
-const MAX_RATE_SPAN = 1; // in seconds
 
 class OpenAIService {
     last5requestTimestamp = []
@@ -106,38 +95,6 @@ class OpenAIService {
             return null;
         }
     }
-
-    // async sendMessage(openaiRequest) {
-    //     const jsonstr = JSON.stringify({
-    //         id: openaiRequest.id,
-    //         msg: openaiRequest.msg
-    //     })
-
-    //     try {
-    //         const response = await client.send(new SendMessageCommand({
-    //             // DelaySeconds: 10,
-    //             // MessageAttributes: {
-    //             //   "Title": {
-    //             //     DataType: "String",
-    //             //     StringValue: "The Whistler"
-    //             //   },
-    //             //   "Author": {
-    //             //     DataType: "String",
-    //             //     StringValue: "John Grisham"
-    //             //   },
-    //             //   "WeeksOn": {
-    //             //     DataType: "Number",
-    //             //     StringValue: "6"
-    //             //   }
-    //             // },
-    //             MessageBody: jsonstr,
-    //             QueueUrl: SQS_URL
-    //         }))
-    //         console.log('SQS SEND SUCCESS', response);
-    //     } catch (err) {
-    //         console.log('SQS SEND ERROR', err);
-    //     }
-    // }
 }
 
 module.exports = OpenAIService;
