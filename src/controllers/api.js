@@ -14,7 +14,7 @@ class APIController {
     }
 
     configure() {
-        this.router.post('/request', (req, res) => {
+        this.router.post('/request', async (req, res) => {
             const { content } = req.body || {};
 
             // Validate
@@ -26,17 +26,38 @@ class APIController {
                 return;
             }
 
-            // TODO: check if message content already exists
+            try {
+                const duplicate = await this.openaiService.checkDuplicate(content);
+                if (duplicate) {
+                    const response = {
+                        id: duplicate.id,
+                        status: duplicate.status,
+                        ...(duplicate.status == OAIRequestStatus.COMPLETE ? {
+                            content: duplicate.resp
+                        } : {})
+                    }
+                    res.send({
+                        error: 0,
+                        ...response
+                    });
+                    return;
+                }
 
-            // Send request to OpenAI service
-            const request = new OpenAIRequest(content);
-            this.openaiService.sendMessage(request);
+                // Send request to OpenAI service
+                const request = new OpenAIRequest(content);
+                this.openaiService.sendMessage(request);
 
-            res.send({
-                error: 0,
-                id: request.id,
-                status: OAIRequestStatus.QUEUED
-            });
+                res.send({
+                    error: 0,
+                    id: request.id,
+                    status: OAIRequestStatus.QUEUED
+                });
+            } catch (err) {
+                res.send({
+                    error: 1,
+                    msg: err
+                });
+            }
         })
     }
 }

@@ -13,6 +13,13 @@ const { createClient } = require('redis');
 const REDIS_URL = process.env.REDIS_URL || '';
 const QUEUE_CHANNEL = process.env.QUEUE_CHANNEL || '';
 
+const TBL_PREFIX = 'request';
+const TBL_FIELD_ID = 'id';
+const TBL_FIELD_MSG = 'msg';
+const TBL_FIELD_RESPONSE = 'resp';
+const TBL_FIELD_STATUS = 'status';
+const INDEX_SET_PREFIX = 'msg';
+
 class OpenAIService {
     constructor() {
         this.setupRedis();
@@ -42,6 +49,28 @@ class OpenAIService {
             msg: openaiRequest.msg
         })
         this.client.publish(QUEUE_CHANNEL, jsonstr)
+    }
+
+    async checkDuplicate(msg) {
+        try {
+            const indexSetKey = `${INDEX_SET_PREFIX}:${msg}`;
+            const requests = await this.client.sMembers(indexSetKey);
+            if (!requests || requests.length === 0) {
+                return null;
+            }
+
+            const reqKey = requests[0];
+            const req = await this.client.hGetAll(reqKey);
+
+            const id = reqKey.slice(8);
+            return {
+                ...req,
+                id
+            }
+        } catch (err) {
+            console.log('REDIS DUPLICATE CHECK ERROR', err);
+            return null;
+        }
     }
 
     // async sendMessage(openaiRequest) {
