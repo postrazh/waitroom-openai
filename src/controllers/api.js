@@ -59,6 +59,27 @@ class APIController {
                 });
             }
         })
+
+        this.router.get('/request/:id', async (req ,res) => {
+            const { id } = req.params;
+
+            try {
+                const request = await this.openaiService.getRequest(id);
+                if (!request) {
+                    throw 'NO REQUEST FOUND';
+                }
+
+                res.send({
+                    error: 0,
+                    ...request
+                });
+            } catch (err) {
+                res.send({
+                    error: 1,
+                    msg: err
+                });
+            }
+        })
     }
 }
 

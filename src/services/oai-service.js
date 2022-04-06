@@ -73,6 +73,22 @@ class OpenAIService {
         }
     }
 
+    async getRequest(id) {
+        try {
+            const key = `${TBL_PREFIX}:${id}`;
+            const req = await this.client.hGetAll(key);
+
+            if (!req || !req.msg) return null;
+            return {
+                ...req,
+                id
+            }
+        } catch (err) {
+            console.log('REDIS REQUEST CHECK ERROR', err);
+            return null;
+        }
+    }
+
     // async sendMessage(openaiRequest) {
     //     const jsonstr = JSON.stringify({
     //         id: openaiRequest.id,
