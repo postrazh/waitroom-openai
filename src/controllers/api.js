@@ -21,7 +21,7 @@ class APIController {
             if (!content) {
                 req.send({
                     error: 1,
-                    msg: 'INVALID MESSAGE CONTENT'
+                    errMsg: 'INVALID MESSAGE CONTENT'
                 })
                 return;
             }
@@ -31,10 +31,11 @@ class APIController {
                 if (duplicate) {
                     const response = {
                         id: duplicate.id,
-                        status: duplicate.status,
-                        ...(duplicate.status == OAIRequestStatus.COMPLETE ? {
-                            content: duplicate.resp
-                        } : {})
+                        ...duplicate
+                        // status: duplicate.status,
+                        // ...(duplicate.status == OAIRequestStatus.COMPLETE ? {
+                        //     resp: duplicate.resp
+                        // } : {})
                     }
                     res.send({
                         error: 0,
@@ -57,7 +58,7 @@ class APIController {
             } catch (err) {
                 res.send({
                     error: 1,
-                    msg: err
+                    errMsg: err
                 });
             }
         })
@@ -78,7 +79,7 @@ class APIController {
             } catch (err) {
                 res.send({
                     error: 1,
-                    msg: err
+                    errMsg: err
                 });
             }
         })
