@@ -10,6 +10,8 @@ const { createClient } = require('redis');
 // })
 // const SQS_URL = process.env.AWS_SQS_URL || '';
 
+
+// TODO: Use npm convict
 const REDIS_URL = process.env.REDIS_URL || '';
 const QUEUE_CHANNEL = process.env.QUEUE_CHANNEL || '';
 
@@ -20,7 +22,12 @@ const TBL_FIELD_RESPONSE = 'resp';
 const TBL_FIELD_STATUS = 'status';
 const INDEX_SET_PREFIX = 'msg';
 
+const MAX_RATE = 5;
+const MAX_RATE_SPAN = 1; // in seconds
+
 class OpenAIService {
+    last5requestTimestamp = []
+
     constructor() {
         this.setupRedis();
     }
@@ -43,12 +50,23 @@ class OpenAIService {
     }
 
     async sendMessage(openaiRequest) {
+        if (this.last5requestTimestamp.length >= MAX_RATE) {
+            const now = new Date();
+            const diff = now.getTime() - this.last5requestTimestamp[MAX_RATE - 1].getTime();
+            if (diff >= MAX_RATE_SPAN * 1000) {
+                return false;
+            }
+        }
+
         // TODO: add connection check
         const jsonstr = JSON.stringify({
             id: openaiRequest.id,
             msg: openaiRequest.msg
         })
         this.client.publish(QUEUE_CHANNEL, jsonstr)
+        this.last5requestTimestamp.unshift(new Date())
+        this.last5requestTimestamp = this.last5requestTimestamp.slice(0, MAX_RATE);
+        return true;
     }
 
     async checkDuplicate(msg) {

@@ -45,7 +45,9 @@ class APIController {
 
                 // Send request to OpenAI service
                 const request = new OpenAIRequest(content);
-                this.openaiService.sendMessage(request);
+                if (!await this.openaiService.sendMessage(request)) {
+                    throw 'MAX RATE EXCEEDED';
+                }
 
                 res.send({
                     error: 0,
